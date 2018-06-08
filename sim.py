@@ -39,20 +39,19 @@ teams = [
     ("Panama", 885.01),
 ]
 
-
-
 team_ix = np.arange(32).reshape((-1,4))
 
 # how good each team is
 team_quote = [
-     47.72, 718.34, 184.54,  29.70,
-     25.03,   6.81, 434.75, 468.08,
-      7.46, 334.75, 184.54,  99.43,
-     10.01, 217.93,  33.03, 217.93,
-      5.03, 109.46, 434.75, 201.21,
-      5.52, 109.46, 167.88, 551.42,
-     12.05, 885.01, 718.34,  18.19,
-     66.73, 201.26,  42.71, 334.75,
+    #Team1  Team 2  Team 3  Team 4
+     47.72, 718.34, 184.54,  29.70, # Group A
+     25.03,   6.81, 434.75, 468.08, # Group B
+      7.46, 334.75, 184.54,  99.43, # Group C
+     10.01, 217.93,  33.03, 217.93, # Group D
+      5.03, 109.46, 434.75, 201.21, # Group E
+      5.52, 109.46, 167.88, 551.42, # Group F
+     12.05, 885.01, 718.34,  18.19, # Group G
+     66.73, 201.26,  42.71, 334.75, # Group H
 ]
 team_quote = np.array(team_quote).reshape((-1,4))
 team_grade = 32 - np.argsort(np.argsort(team_quote.reshape(-1))).reshape((-1,4))
@@ -63,7 +62,7 @@ print(team_grade)
 wins   = np.zeros(team_quote.shape)
 points = np.zeros(team_quote.shape)
 
-num_wms = 3000
+num_wms = 6000
 for _ in range(num_wms):
     # how many points you get if you win against this team
     
@@ -87,11 +86,11 @@ points = points / num_wms
 print("Average points")
 print(points)
 
-max_cost = 61
+max_cost = 64
 team_cost  = 32 - np.argsort(np.argsort(team_quote.reshape(-1))) # use standard cost
 team_value = points.reshape(-1)
 
-best_value = 0
+best_value = []
 best_teams = []
 
 # I ... am sorry ...
@@ -104,17 +103,19 @@ for t0 in range(32):
                 if t3 == t0 or t3 == t1 or t3 == t2: continue
                 value = np.sum(team_value[[t0,t1,t2,t3]])
                 cost  = np.sum(team_cost [[t0,t1,t2,t3]])
-                
-                if cost > max_cost: continue
-                if value > best_value:
-                    best_teams = [[t0,t1,t2,t3]]
-                    best_value = value
-                elif value == best_value:
-                    best_teams.append([t0,t1,t2,t3])
-                else:
-                    pass
-for bet in best_teams:
-    print("{:.2f}@{} with teams ix_in_group:{}, grade:{}, place:{}".format(best_value, np.sum(team_cost[bet]), bet, team_cost[bet], 32-team_cost[bet]))
-    print(*[teams[-i][0] for i in team_cost[bet]])
 
+                if cost > max_cost: continue
+                best_value.append(value)
+                best_teams.append([t0,t1,t2,t3])
+
+best_value = np.array(best_value)
+best_teams = np.array(best_teams)
+sort = np.argsort(best_value)[-20:]
+best_value = best_value[sort]
+best_teams = best_teams[sort]
+
+
+for val,bet in zip(best_value,best_teams):
+    print("{:.2f}@{:2d} with teams ix_in_group:{}, grade:{}, place:{} points:{}".format(val, np.sum(team_cost[bet]), bet, team_cost[bet], 32-team_cost[bet], points.reshape(-1)[bet]))
+    print("{:.2f}".format(val), *[teams[-i][0] for i in team_cost[bet]])
 
