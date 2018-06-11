@@ -54,7 +54,17 @@ team_quote = [
      66.73, 201.26,  42.71, 334.75, # Group H
 ]
 team_quote = np.array(team_quote).reshape((-1,4))
-team_grade = 32 - np.argsort(np.argsort(team_quote.reshape(-1))).reshape((-1,4))
+team_grade = [
+    17,  0, 10, 21,
+    26, 29,  2,  3,
+    30, 14, 11, 22,
+    27, 19, 25, 12,
+    31, 16,  8,  7,
+    32, 20, 15,  4,
+    24,  6,  5, 28,
+    23,  9, 18, 13,
+]
+team_grade = np.array(team_grade).reshape((-1,4))
 
 print("Team grades:")
 print(team_grade)
@@ -62,31 +72,23 @@ print(team_grade)
 wins   = np.zeros(team_quote.shape)
 points = np.zeros(team_quote.shape)
 
-num_wms = 6000
-for _ in range(num_wms):
-    # how many points you get if you win against this team
-    
-    team_grade = np.array(team_quote) * rnd.random(team_quote.shape)
-    team_grade = 32 - np.argsort(np.argsort(team_grade.reshape(-1))).reshape((-1,4))
+for i in range(0,4):
+    for j in range(i+1,4):
+        # i vs j in each group
+        #random = rnd.random(team_quote.shape[0]) * (team_quote[:,i] + team_quote[:,j])
+        #i_winner  = (random < team_quote[:,j])
+        i_winner = team_quote[:,j] / (team_quote[:,i] + team_quote[:,j])
+        i_loser = 1 - i_winner # 0:i 1:j
 
-    for i in range(0,4):
-        for j in range(i+1,4):
-            # i vs j in each group
-            #random = rnd.random(team_quote.shape[0]) * (team_quote[:,i] + team_quote[:,j])
-            #i_winner  = (random < team_quote[:,j])
-            i_winner = team_quote[:,j] / (team_quote[:,i] + team_quote[:,j])
-            i_loser = 1 - i_winner # 0:i 1:j
-            
-            wins  [:,i] += i_winner
-            wins  [:,j] += i_loser
-            points[:,i] += i_winner*team_grade[:,j]
-            points[:,j] += i_loser *team_grade[:,i]
+        wins  [:,i] += i_winner
+        wins  [:,j] += i_loser
+        points[:,i] += i_winner*team_grade[:,j]
+        points[:,j] += i_loser *team_grade[:,i]
 
-points = points / num_wms
-print("Average points")
+print("Estimated points")
 print(points)
 
-max_cost = 64
+max_cost = 60
 team_cost  = 32 - np.argsort(np.argsort(team_quote.reshape(-1))) # use standard cost
 team_value = points.reshape(-1)
 
